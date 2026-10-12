@@ -54,9 +54,20 @@
   .note{color:var(--faint);font-size:11px;line-height:1.5;margin-top:10px}
   .flag{background:rgba(76,157,255,.08);border:1px solid var(--line);border-radius:10px;padding:11px;font-size:12.5px;color:var(--dim);line-height:1.5;margin-top:12px}
   .banner{background:rgba(230,179,74,.12);border:1px solid var(--gold);color:var(--gold);border-radius:10px;padding:9px 12px;font-size:12px;font-weight:600;margin:12px 16px 0;text-align:center}
+  #gate{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px}
+  #gate .lock{width:54px;height:54px;border-radius:16px;background:rgba(76,157,255,.14);display:flex;align-items:center;justify-content:center;font-size:26px}
+  #gate input{font-size:30px;width:180px;text-align:center;letter-spacing:14px;background:var(--s);border:1px solid var(--line);color:var(--tx);border-radius:12px;padding:12px 0;caret-color:transparent}
+  #gerr{color:var(--loss);font-size:12px;height:14px;font-weight:600}
 </style>
 </head>
 <body>
+<div id="gate">
+  <div class="lock">🔒</div>
+  <div class="tag">PSX PORTFOLIO TRACKER</div>
+  <div style="color:var(--dim);font-size:13px">Enter your PIN</div>
+  <input id="pin" type="tel" inputmode="numeric" maxlength="4" autocomplete="off" autofocus>
+  <div id="gerr"></div>
+</div>
 <div class="hd">
   <div class="row"><div style="display:flex;align-items:center;gap:8px"><div class="dot"></div><span class="tag">PSX PORTFOLIO TRACKER</span></div>
     <span style="font-size:11px;color:var(--faint)" id="asof"></span></div>
@@ -227,14 +238,28 @@ function setHTML(d){
     <div class="lbl" style="margin-top:12px">Cash balance (PKR)</div><input class="in" id="s_cash" type="number" value="${D.cash}">
     <div class="lbl" style="margin-top:12px">Goal — AUD invested</div><input class="in" id="s_goal" type="number" value="${D.goal}">
     <div style="margin-top:14px"><button class="btn p" id="saveSet">Save settings</button></div></div>
+  <div class="card"><div class="ct">BACKUP & MOVE TO ANOTHER PHONE</div>
+    <button class="btn p" id="expFile" style="margin-bottom:10px">⬇ Export backup file</button>
+    <input id="impFile" type="file" accept="application/json" style="display:none">
+    <button class="btn g" id="impBtn" style="margin-bottom:10px">⬆ Import backup file</button>
+    <button class="btn g" id="copyCode" style="margin-bottom:10px">Copy sync code</button>
+    <button class="btn g" id="pasteCode">Paste sync code</button>
+    <div id="syncArea"></div>
+    <div id="setmsg" class="note" style="color:var(--acc);min-height:14px"></div>
+    <div class="note">A backup holds your holdings. Export it on one phone, import it on another to move everything across. Keep the file somewhere safe — it's your data in plain text.</div></div>
   <div class="card"><div class="ct">DATA</div>
     <button class="btn g" id="loadSample" style="margin-bottom:10px">Load sample data</button>
-    <button class="btn d" id="clearAll">Clear everything (start empty)</button>
-    <div class="note">Your data lives only in this browser. To move it to another phone, re-enter it there, or ask for a backup/restore feature.</div></div>
+    <button class="btn d" id="clearAll">Clear everything (start empty)</button></div>
   <div class="card"><div class="ct">ABOUT</div><div style="font-size:12.5px;color:var(--dim);line-height:1.6">A private PSX portfolio tracker that runs entirely in your browser. No accounts, no servers, no data leaves your device. Add it to your home screen for an app-like experience. Not financial advice.</div></div>`;
 }
 function setBind(){
+  const msg=t=>{const e=document.getElementById("setmsg");if(e)e.textContent=t;};
   document.getElementById("saveSet").onclick=()=>{D.fx=+document.getElementById("s_fx").value||200;D.cash=+document.getElementById("s_cash").value||0;D.goal=+document.getElementById("s_goal").value||1000000;save();render();};
+  document.getElementById("expFile").onclick=()=>{const b=new Blob([JSON.stringify(D,null,2)],{type:"application/json"});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download="psx-tracker-backup-"+new Date().toISOString().slice(0,10)+".json";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(u);};
+  document.getElementById("impBtn").onclick=()=>document.getElementById("impFile").click();
+  document.getElementById("impFile").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const o=JSON.parse(await f.text());if(!o.holdings)throw 0;D=o;save();render();}catch(x){msg("That file could not be read as a backup.");}};
+  document.getElementById("copyCode").onclick=async()=>{try{await navigator.clipboard.writeText(JSON.stringify(D));msg("Sync code copied — paste it into this app on your other phone.");}catch(x){msg("Copy blocked — use Export backup file instead.");}};
+  document.getElementById("pasteCode").onclick=()=>{document.getElementById("syncArea").innerHTML='<textarea id="pc" class="in" style="height:72px;margin-top:10px" placeholder="Paste sync code here"></textarea><button class="btn p" id="applyPc" style="margin-top:8px">Apply sync code</button>';document.getElementById("applyPc").onclick=()=>{try{const o=JSON.parse(document.getElementById("pc").value);if(!o.holdings)throw 0;D=o;save();render();}catch(x){msg("That sync code was not valid.");}};};
   document.getElementById("loadSample").onclick=()=>{D=JSON.parse(JSON.stringify(SAMPLE));save();tab="home";render();};
   document.getElementById("clearAll").onclick=()=>{if(confirm("Clear all holdings and data?")){D={holdings:[],fx:D.fx,cash:0,goal:D.goal,monthly:D.monthly,ret:D.ret,isSample:false};save();render();}};
 }
@@ -242,7 +267,16 @@ function renderNav(){
   const T=[["home","Home","M3 11l9-8 9 8M5 10v10h14V10"],["hold","Holdings","M3 7h18v12H3zM3 11h18"],["goal","Goal","M12 2v4M12 18v4M2 12h4M18 12h4M12 8a4 4 0 100 8 4 4 0 000-8z"],["set","Settings","M12 15a3 3 0 100-6 3 3 0 000 6zM19 12a7 7 0 00-.1-1l2-1.5-2-3.5-2.4 1a7 7 0 00-1.7-1L14.5 3h-5l-.3 2.5a7 7 0 00-1.7 1l-2.4-1-2 3.5L2.1 11a7 7 0 000 2l-2 1.5 2 3.5 2.4-1a7 7 0 001.7 1l.3 2.5h5l.3-2.5a7 7 0 001.7-1l2.4 1 2-3.5-2-1.5a7 7 0 00.1-1z"]];
   document.getElementById("nav").innerHTML=T.map(([k,l,p])=>`<button class="${tab===k?'on':''}" onclick="tab='${k}';render()"><svg viewBox="0 0 24 24"><path d="${p}"/></svg>${l}</button>`).join("");
 }
-render();
+
+/* ---- PIN gate: asks every time the app opens. Change PIN to your own 4 digits. ---- */
+const PIN="1994";
+const gp=document.getElementById("pin");
+gp.addEventListener("input",()=>{
+  if(gp.value.length>=PIN.length){
+    if(gp.value===PIN){document.getElementById("gate").remove();render();}
+    else{document.getElementById("gerr").textContent="Wrong PIN";gp.value="";}
+  }
+});
 </script>
 </body>
 </html>

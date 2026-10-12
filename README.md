@@ -39,6 +39,22 @@ No build command and no output directory are needed — import the repo and depl
 | `icon-180.png`, `icon-192.png`, `icon-512.png` | App icons. |
 | `README.md` | This file. |
 
+## PIN lock
+
+The app opens behind a **4-digit PIN** every time (default `1994`). To change it, edit the line
+`const PIN="1994";` near the bottom of `index.html`.
+
+Note: this is a convenience lock to stop someone casually opening the app on your phone. It is **not**
+strong security — the page runs in the browser, so a technical person could bypass it. Your real
+protection is that **no actual holdings live in this code** — they stay only in your own browser.
+
+## Backup & moving between phones
+
+Open **Settings** in the app:
+- **Export backup file** downloads your data as a `.json` file.
+- **Import backup file** loads it back (e.g. on a new phone).
+- **Copy / Paste sync code** moves your data via copy-paste between devices.
+
 ## Privacy & security
 
 - No personal holdings are stored in this code — only sample data.
