@@ -6,12 +6,16 @@ Everything you enter is saved only in your own browser (using `localStorage`); n
 
 ## What it does
 
-- **Home** — total portfolio value (in PKR and AUD), unrealized profit/loss, dividends, sector allocation, per-holding performance, and quick insights.
-- **Holdings** — add, edit, and delete your own stocks (ticker, shares, average buy price, current price, dividends received). Prices are entered by you — there is no live price feed.
-- **Goal** — set a target (e.g. A$1,000,000 invested), see your progress, and project how long it takes at a chosen monthly contribution and annual return.
-- **Settings** — set the AUD→PKR rate, your cash balance, and your goal; load sample data or clear everything.
+- **Home** — portfolio value (PKR + AUD), a **return breakdown** that keeps *unrealized P&L*, *realized P&L*, *dividends received*, and *total return* as separate, labelled measures, a **price-freshness summary** (fresh / stale / missing), sector allocation, and per-holding performance.
+- **Holdings** — add, edit, and delete your own stocks. Each price is tagged **MANUAL — NOT LIVE** with the date you last updated it. A "✓ Still current" button re-stamps today's date without changing the number. Stale prices (older than your chosen number of trading days) are flagged.
+- **Dividends** — log each payment individually (ticker, date, net amount received after tax) and see the running total and yield-on-cost-to-date.
+- **Goal** — set a target (e.g. A$1,000,000 invested), see progress, and project the timeline at a chosen monthly contribution and return. Assumptions are stated on the tab.
+- **Settings** — AUD→PKR rate (with the date you set it), cash balance, realized P&L, the stale-price threshold, your goal, backup/restore, and sample/clear.
 
-The app ships with **sample data** so you can see how it works. When you add your first real holding, the sample data is cleared automatically.
+### Important: this is NOT a live market tracker
+There is **no live price feed**. PSX quotes cannot be fetched by a free static website, so **every price is one you type in yourself**. The app never claims a price is live, current, or sourced from PSX — it shows the last price you entered and when you entered it, and warns you when that may be out of date. Treat all figures as *based on your own inputs*.
+
+The app ships with **sample data**. When you add your first real holding, the sample is cleared automatically.
 
 ## How to run it
 
